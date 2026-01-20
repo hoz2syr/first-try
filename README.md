@@ -146,12 +146,58 @@ The following ports are exposed:
 
 **Note**: The web app uses `NEXT_PUBLIC_API_URL=http://localhost:3001` so that client-side JavaScript in the browser can access the API through the exposed port.
 
+### Docker Development Mode
+
+For development with hot reload, use the development override:
+
+```bash
+# Start all services in development mode with hot reload
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Or start specific services
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up web api
+```
+
+Development mode features:
+- Source code mounted as volumes for hot reload
+- Development environment variables
+- Faster iteration without rebuilding images
+
+### Docker Troubleshooting
+
+**Issue**: Containers fail to start
+```bash
+# Check logs
+docker compose logs
+
+# Check specific service
+docker compose logs api
+
+# Restart services
+docker compose restart
+```
+
+**Issue**: Database connection errors
+```bash
+# Ensure database is healthy
+docker compose ps
+
+# Reset database (WARNING: deletes all data)
+docker compose down -v
+docker compose up -d
+```
+
+**Issue**: Port conflicts
+- Ensure ports 3000, 3001, and 5432 are not in use
+- Modify ports in `docker-compose.yml` if needed
+
+## ⚙️ Local Development Setup (Without Docker)
+
+### Prerequisites
 
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
 - **PostgreSQL** >= 14.0
-
-## ⚙️ Setup Instructions
 
 ### 1. Clone and Install Dependencies
 

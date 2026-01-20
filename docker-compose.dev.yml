@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Development override for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL Database (same as production)
+  db:
+    ports:
+      - "5432:5432"
+
+  # API - Development mode with hot reload
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder  # Use builder stage for development
+    command: npm run dev:api
+    volumes:
+      - ./apps/api/src:/app/apps/api/src:ro
+      - ./packages/shared:/app/packages/shared:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/analytics_db?schema=public
+      PORT: 3001
+      NODE_ENV: development
+
+  # Web - Development mode with hot reload
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: builder  # Use builder stage for development
+    command: npm run dev:web
+    volumes:
+      - ./apps/web/src:/app/apps/web/src:ro
+      - ./packages/shared:/app/packages/shared:ro
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: development
