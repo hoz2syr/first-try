@@ -34,3 +34,7 @@ next-env.d.ts
 
 # Prisma
 apps/api/prisma/migrations/**/migration.sql
+
+# Docker
+.docker
+docker-compose.override.yml

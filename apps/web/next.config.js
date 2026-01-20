@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@first-try/shared'],
+  output: 'standalone',
 }
 
 module.exports = nextConfig

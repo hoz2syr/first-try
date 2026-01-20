@@ -11,6 +11,7 @@ first-try/
 │   │   ├── src/
 │   │   │   ├── app/        # Next.js 14 App Router pages
 │   │   │   └── components/ # React components
+│   │   ├── Dockerfile      # Production-ready web container
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   └── api/                 # Express backend
@@ -20,6 +21,7 @@ first-try/
 │       │   └── index.ts    # Server entry point
 │       ├── prisma/
 │       │   └── schema.prisma
+│       ├── Dockerfile      # Production-ready API container
 │       ├── package.json
 │       └── tsconfig.json
 ├── packages/
@@ -29,6 +31,7 @@ first-try/
 │       │   └── index.ts
 │       ├── package.json
 │       └── tsconfig.json
+├── docker-compose.yml       # Docker orchestration
 ├── package.json             # Root workspace configuration
 └── tsconfig.json           # Base TypeScript config
 ```
@@ -39,6 +42,7 @@ first-try/
 - **Frontend**: Next.js 14 with App Router, TypeScript, and React
 - **Backend**: Express.js REST API with TypeScript
 - **Database**: PostgreSQL with Prisma ORM
+- **Docker Support**: Full containerization with multi-stage builds
 - **Shared Code**: Common types and utilities across apps
 - **Analytics Dashboard**: 
   - Summary cards displaying key metrics
@@ -47,7 +51,101 @@ first-try/
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+### For Docker Setup (Recommended)
+- **Docker** >= 20.10
+- **Docker Compose** >= 2.0
+
+### For Local Development
+
+- **Node.js** >= 18.0.0
+- **npm** >= 9.0.0
+- **PostgreSQL** >= 14.0
+
+## 🐳 Quick Start with Docker (Recommended)
+
+The easiest way to run the entire stack is using Docker Compose:
+
+```bash
+# Clone the repository
+git clone https://github.com/hoz2syr/first-try.git
+cd first-try
+
+# Start all services (database, API, and web)
+docker compose up --build
+```
+
+That's it! The services will be available at:
+- **Frontend Dashboard**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **API Health Check**: http://localhost:3001/health
+- **Analytics Endpoint**: http://localhost:3001/api/analytics/summary
+- **PostgreSQL**: localhost:5432
+
+### Docker Commands
+
+```bash
+# Start all services in detached mode
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (deletes database data)
+docker compose down -v
+
+# Rebuild and restart a specific service
+docker compose up --build api
+docker compose up --build web
+
+# Access database shell
+docker compose exec db psql -U postgres -d analytics_db
+
+# Run Prisma Studio (database GUI)
+docker compose exec api npx prisma studio
+```
+
+### Docker Architecture
+
+The Docker setup includes:
+
+1. **PostgreSQL Container** (`db`):
+   - Image: `postgres:16-alpine`
+   - Port: `5432`
+   - Data persisted in Docker volume `postgres_data`
+   - Health checks ensure database is ready before API starts
+
+2. **API Container** (`api`):
+   - Multi-stage build for optimized image size
+   - Runs as non-root user for security
+   - Automatic database migrations on startup
+   - Port: `3001`
+   - Environment variables:
+     - `DATABASE_URL`: `postgresql://postgres:postgres@db:5432/analytics_db?schema=public`
+     - `PORT`: `3001`
+     - `NODE_ENV`: `production`
+
+3. **Web Container** (`web`):
+   - Next.js standalone output for optimal performance
+   - Runs as non-root user for security
+   - Port: `3000`
+   - Environment variables:
+     - `NEXT_PUBLIC_API_URL`: `http://localhost:3001` (for browser access to API)
+
+### Port Configuration
+
+The following ports are exposed:
+
+| Service    | Internal Port | External Port | Description           |
+|------------|---------------|---------------|-----------------------|
+| Web (Next.js) | 3000       | 3000          | Frontend dashboard    |
+| API (Express) | 3001       | 3001          | Backend REST API      |
+| Database (PostgreSQL) | 5432 | 5432     | PostgreSQL database   |
+
+**Note**: The web app uses `NEXT_PUBLIC_API_URL=http://localhost:3001` so that client-side JavaScript in the browser can access the API through the exposed port.
+
 
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
