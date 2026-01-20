@@ -10,24 +10,31 @@ const router = Router();
  */
 router.get('/summary', async (req, res) => {
   try {
-    // Initialize Prisma client connection
-    await prisma.$connect();
+    // Try to connect to database and fetch real data
+    let orders = [];
+    let hasDatabase = false;
 
-    // Fetch orders from database (or use mock data if no orders exist)
-    const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: 100, // Limit to last 100 orders
-    });
+    try {
+      await prisma.$connect();
+      orders = await prisma.order.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 100, // Limit to last 100 orders
+      });
+      hasDatabase = true;
+    } catch (dbError) {
+      // Database not available, will use mock data
+      console.log('Database not available, using mock data');
+    }
 
     // Calculate analytics
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // If no orders, return mock data
-    const summary: AnalyticsSummary = totalOrders > 0 
+    // If no orders or no database, return mock data
+    const summary: AnalyticsSummary = totalOrders > 0 && hasDatabase
       ? {
           totalOrders,
           totalRevenue: Math.round(totalRevenue * 100) / 100,
