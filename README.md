@@ -74,6 +74,8 @@ cd first-try
 docker compose up --build
 ```
 
+**📖 For detailed Docker commands and troubleshooting, see [DOCKER.md](./DOCKER.md)**
+
 That's it! The services will be available at:
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:3001
