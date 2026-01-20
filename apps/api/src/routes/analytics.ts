@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db';
 import type { AnalyticsSummary, ApiResponse } from '@first-try/shared';
+import type { Order as PrismaOrder } from '@prisma/client';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const router = Router();
 router.get('/summary', async (req, res) => {
   try {
     // Try to connect to database and fetch real data
-    let orders = [];
+    let orders: PrismaOrder[] = [];
     let hasDatabase = false;
 
     try {
@@ -33,14 +34,14 @@ router.get('/summary', async (req, res) => {
     const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // If no orders or no database, return mock data
+    // Generate summary with real or mock data
     const summary: AnalyticsSummary = totalOrders > 0 && hasDatabase
       ? {
           totalOrders,
           totalRevenue: Math.round(totalRevenue * 100) / 100,
           averageOrderValue: Math.round(averageOrderValue * 100) / 100,
-          periodStart: orders[orders.length - 1]?.createdAt.toISOString() || new Date().toISOString(),
-          periodEnd: orders[0]?.createdAt.toISOString() || new Date().toISOString(),
+          periodStart: orders[orders.length - 1].createdAt.toISOString(),
+          periodEnd: orders[0].createdAt.toISOString(),
         }
       : {
           // Mock placeholder data

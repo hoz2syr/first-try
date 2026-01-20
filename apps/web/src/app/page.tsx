@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AnalyticsSummary, ApiResponse } from '@first-try/shared';
+import { formatCurrency } from '@first-try/shared';
 import SummaryCard from '@/components/SummaryCard';
 import ChartPlaceholder from '@/components/ChartPlaceholder';
 import styles from './page.module.css';
@@ -72,12 +73,12 @@ export default function Home() {
           />
           <SummaryCard
             title="Total Revenue"
-            value={`$${analytics?.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
+            value={formatCurrency(analytics?.totalRevenue || 0)}
             icon="💰"
           />
           <SummaryCard
             title="Average Order Value"
-            value={`$${analytics?.averageOrderValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
+            value={formatCurrency(analytics?.averageOrderValue || 0)}
             icon="📊"
           />
           <SummaryCard
