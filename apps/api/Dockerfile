@@ -17,7 +17,7 @@ COPY apps/api ./apps/api
 RUN npm ci
 
 # Generate Prisma client
-RUN npm run prisma:generate -w apps/api
+RUN cd apps/api && npx prisma generate
 
 # Build the API
 RUN npm run build:api
@@ -26,9 +26,6 @@ RUN npm run build:api
 FROM node:18-alpine AS runner
 
 WORKDIR /app
-
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -52,9 +49,6 @@ USER apiuser
 EXPOSE 3001
 
 ENV NODE_ENV=production
-
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
 
 # Run database migrations and start the server
 CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && npm start"]
