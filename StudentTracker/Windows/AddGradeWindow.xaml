@@ -1,0 +1,112 @@
+<Window x:Class="StudentTracker.Windows.AddGradeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="إدخال علامة"
+        Height="480"
+        Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}">
+    <Window.Resources>
+        <!-- أنماط خاصة لهذه النافذة -->
+        <Style x:Key="RadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="0,0,20,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+    </Window.Resources>
+    
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Margin="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Padding="24,20" CornerRadius="16,16,0,0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#6366F1" Offset="0" />
+                        <GradientStop Color="#4F46E5" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel>
+                    <TextBlock Text="المادة" FontSize="13" Foreground="#C7D2FE" />
+                    <TextBlock Text="{Binding SubjectName}" FontWeight="Bold" FontSize="20" Foreground="White" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="24,20">
+                    <!-- نوع العلامة -->
+                    <GroupBox Header="نوع العلامة" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="12,10">
+                            <RadioButton x:Name="PracticalRadio" Content="عملي" IsChecked="True" Style="{StaticResource RadioButtonStyle}" />
+                            <RadioButton x:Name="TheoryRadio" Content="نظري" Style="{StaticResource RadioButtonStyle}" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- العلامة -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="العلامة (0 - 100)" FontWeight="SemiBold" Margin="0,0,0,8" 
+                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"/>
+                        <TextBox x:Name="GradeTextBox" 
+                                 Style="{StaticResource ValidatedTextBoxStyle}" 
+                                 Tag="أدخل العلامة (0-100)" 
+                                 Width="220" 
+                                 HorizontalAlignment="Center" 
+                                 FontSize="16"
+                                 Padding="12,10"/>
+                    </StackPanel>
+
+                    <!-- التاريخ -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="التاريخ" Margin="0,0,0,8" FontWeight="SemiBold" 
+                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"/>
+                        <DatePicker x:Name="DatePickerControl" 
+                                    Language="ar-SA" 
+                                    SelectedDate="{Binding AttemptDate, Mode=OneWay}" 
+                                    Width="220" 
+                                    HorizontalAlignment="Center"
+                                    FontSize="14"/>
+                    </StackPanel>
+
+                    <!-- ملاحظات -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="ملاحظات (اختياري)" Margin="0,0,0,8" FontWeight="SemiBold" 
+                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"/>
+                        <TextBox x:Name="NotesTextBox" 
+                                 AcceptsReturn="True" 
+                                 Height="90" 
+                                 TextWrapping="Wrap" 
+                                 VerticalScrollBarVisibility="Auto" 
+                                 Style="{StaticResource ValidatedTextBoxStyle}" 
+                                 Tag="أضف ملاحظاتك هنا (اختياري)" 
+                                 VerticalContentAlignment="Top"
+                                 Padding="12,10" />
+                    </StackPanel>
+
+                    <!-- الأزرار -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                        <Button Width="130" Click="Save_Click" Style="{StaticResource PrimaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="ContentSave" Width="16" Height="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="حفظ"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Width="130" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="إلغاء"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>
+

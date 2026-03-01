@@ -1,0 +1,176 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build StudentTracker project",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Debug",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Debug",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Debug",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release --no-build --no-restore; dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build StudentTracker project (Release only)",
+			"type": "shell",
+			"command": "dotnet build StudentTracker/StudentTracker.csproj --configuration Release",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}
