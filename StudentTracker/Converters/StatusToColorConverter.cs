@@ -10,19 +10,19 @@ namespace StudentTracker.Converters;
 /// </summary>
 /// <remarks>
 /// يحول حالة المادة إلى لون مناسب للعرض:
-/// - ناجح: أخضر (#22C55E)
-/// - راسب: أحمر (#DC2626)
-/// - معلّق: برتقالي (#F97316)
-/// - مستقبلي: رمادي (#94A3B8)
+/// - ناجح: أخضر (SecondaryColor = #10B981)
+/// - راسب: أحمر (DangerColor = #EF4444)
+/// - معلّق: برتقالي (AccentColor = #F59E0B)
+/// - مستقبلي: رمادي (MutedColor = #94A3B8)
 /// </remarks>
 public class StatusToColorConverter : IValueConverter
 {
-    // تعريف الألوان
-    private static readonly SolidColorBrush SuccessBrush = new((Color)ColorConverter.ConvertFromString("#22C55E"));
-    private static readonly SolidColorBrush ErrorBrush = new((Color)ColorConverter.ConvertFromString("#DC2626"));
-    private static readonly SolidColorBrush WarningBrush = new((Color)ColorConverter.ConvertFromString("#F97316"));
-    private static readonly SolidColorBrush FutureBrush = new((Color)ColorConverter.ConvertFromString("#94A3B8"));
-    private static readonly SolidColorBrush DefaultBrush = new((Color)ColorConverter.ConvertFromString("#1E293B"));
+    // تعريف الألوان - مُوحَّدة مع لوحة الألوان في Styles.xaml
+    private static readonly SolidColorBrush SuccessBrush = new((Color)ColorConverter.ConvertFromString("#10B981"));  // SecondaryColor
+    private static readonly SolidColorBrush ErrorBrush = new((Color)ColorConverter.ConvertFromString("#EF4444"));    // DangerColor
+    private static readonly SolidColorBrush WarningBrush = new((Color)ColorConverter.ConvertFromString("#F59E0B"));  // AccentColor
+    private static readonly SolidColorBrush FutureBrush = new((Color)ColorConverter.ConvertFromString("#94A3B8"));   // MutedColor
+    private static readonly SolidColorBrush DefaultBrush = new((Color)ColorConverter.ConvertFromString("#1E293B"));  // TextPrimaryColor
 
     /// <summary>
     /// تحويل الحالة إلى لون
