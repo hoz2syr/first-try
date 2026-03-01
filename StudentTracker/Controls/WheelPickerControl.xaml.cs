@@ -24,8 +24,8 @@ namespace StudentTracker.Controls
         public string SelectedValue { get => (string)GetValue(SelectedValueProperty); set => SetValue(SelectedValueProperty, value); }
         public event EventHandler<string>? SelectionChanged;
 
-        private const double ItemHeight = 46;
-        private const double ContainerHeight = 230;
+        private const double ItemHeight = 42;
+        private const double ContainerHeight = 200;
         private const double CenterOffset = (ContainerHeight - ItemHeight) / 2.0;
 
         private double _currentOffset = 0;
@@ -106,13 +106,14 @@ namespace StudentTracker.Controls
             {
                 var tb = new TextBlock { 
                     Text = ItemsSource[i], 
-                    Foreground = Brushes.White, 
-                    FontSize = 20, 
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B)), 
+                    FontSize = 16, 
                     FontFamily = new FontFamily("Segoe UI"), 
                     TextAlignment = TextAlignment.Center, 
                     Width = width, 
                     Height = ItemHeight, 
-                    IsHitTestVisible = false 
+                    IsHitTestVisible = false,
+                    Padding = new Thickness(0, 10, 0, 0)
                 };
                 _textBlocks.Add(tb); ItemsCanvas.Children.Add(tb);
             }
@@ -134,10 +135,13 @@ namespace StudentTracker.Controls
                 Canvas.SetTop(_textBlocks[i], CenterOffset + offset + i * ItemHeight);
                 _textBlocks[i].Width = width;
                 double dist = Math.Abs(offset + i * ItemHeight) / ItemHeight;
-                _textBlocks[i].Opacity = Math.Max(0.1, 1.0 - dist * 0.38);
                 bool sel = dist < 0.5;
-                _textBlocks[i].FontWeight = sel ? FontWeights.SemiBold : FontWeights.Normal;
-                _textBlocks[i].FontSize = sel ? 21 : 19;
+                _textBlocks[i].Opacity = sel ? 1.0 : Math.Max(0.25, 1.0 - dist * 0.35);
+                _textBlocks[i].FontWeight = sel ? FontWeights.Bold : FontWeights.Normal;
+                _textBlocks[i].FontSize = sel ? 18 : 15;
+                _textBlocks[i].Foreground = sel 
+                    ? new SolidColorBrush(Color.FromRgb(0x63, 0x66, 0xF1)) 
+                    : new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
                 double scale = Math.Max(0.7, 1.0 - dist * 0.08);
                 _textBlocks[i].RenderTransformOrigin = new Point(0.5, 0.5);
                 _textBlocks[i].RenderTransform = new ScaleTransform(scale, scale);
