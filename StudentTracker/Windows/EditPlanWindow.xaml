@@ -2,81 +2,554 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:vm="clr-namespace:StudentTracker.ViewModels"
+        FlowDirection="RightToLeft"
         Title="تعديل المخطط العام"
-        Height="720"
-        Width="920"
-        WindowStartupLocation="CenterOwner">
-    <Border Background="#EEF2F7" Padding="0">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        Height="750"
+        Width="1000"
+        MinHeight="600"
+        MinWidth="800"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
 
-            <!-- Header -->
-            <Border Grid.Row="0" Padding="18,14">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#1A237E" Offset="0" />
-                        <GradientStop Color="#1565C0" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <StackPanel>
-                    <TextBlock FontWeight="Bold" FontSize="20" Foreground="White" >
-                    <iconPacks:PackIconMaterial Kind="Cog" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <Run Text="تعديل المخطط العام"/>
-                </TextBlock>
-                    <TextBlock Text="إضافة وتعديل المواد — لا يتم حذف العلامات أو إعادة بناء البيانات السابقة" Foreground="#BBDEFB" FontSize="13" Margin="0,4,0,0" />
+    <Window.Resources>
+        <!-- أنماط داخلية للنافذة -->
+        <!-- ملاحظة: ModernInputStyle تم نقله إلى Resources/Styles.xaml -->
+        
+        <!-- نمط زر الإضافة -->
+        <Style x:Key="AddButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#10B981"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="MaxHeight" Value="38"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                MaxHeight="{TemplateBinding MaxHeight}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="Plus" Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#059669"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#047857"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط زر الحذف -->
+        <Style x:Key="DeleteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <iconPacks:PackIconMaterial x:Name="icon" Kind="Close" Width="12" Height="12" 
+                                                        Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FEE2E2"/>
+                                <Setter Property="Foreground" Value="#EF4444"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط زر الحفظ -->
+        <Style x:Key="SaveButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.2" Color="#6366F1" Direction="270"/>
+                            </Border.Effect>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="ContentSave" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4F46E5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4338CA"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط زر الإغلاق -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#64748B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="Close" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#475569"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#334155"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط زر undo/redo -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="200"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                <Setter Property="Foreground" Value="#1E293B"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط بطاقة الفصل الدراسي -->
+        <Style x:Key="SemesterCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.08" Color="#000000" Direction="270"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- نمط عنوان القسم -->
+        <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <!-- نمط التسمية -->
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <!-- اختصارات لوحة المفاتيح -->
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveCommand}"/>
+        <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding UndoCommand}"/>
+        <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding RedoCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding BuildTablesCommand}"/>
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header المحسن -->
+        <Border Grid.Row="0" Padding="24,20"
+                Background="{StaticResource HeaderGradientBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- العنوان والتوضيح -->
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="SchoolOutline" Width="28" Height="28" 
+                                                    Foreground="White" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <TextBlock FontWeight="Bold" FontSize="24" Foreground="White" 
+                                   VerticalAlignment="Center">تعديل المخطط العام</TextBlock>
+                    </StackPanel>
+                    <TextBlock Text="أضف أو رتب المواد الدراسية لكل فصل — العلامات والبيانات السابقة محفوظة"
+                               Foreground="#C7D2FE" FontSize="13" Margin="40,6,0,0"/>
                 </StackPanel>
-            </Border>
 
-            <Grid Grid.Row="1" Margin="16,12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Border Background="White" CornerRadius="10" Padding="14" Margin="0,0,0,12" BorderBrush="#E3E8EF" BorderThickness="1"
-                        Effect="{StaticResource CardShadow}">
-                    <WrapPanel>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="عدد السنوات الدراسية" FontWeight="SemiBold" />
-                            <TextBox x:Name="YearsTextBox" Width="170" Text="" />
-                        </StackPanel>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="عدد الفصول في كل سنة" FontWeight="SemiBold" />
-                            <TextBox x:Name="SemestersTextBox" Width="170" Text="2" />
-                        </StackPanel>
-                        <Button Width="160" VerticalAlignment="Bottom" Click="BuildTables_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="Table" Width="16" Height="16" Margin="0,0,6,0"/>
-                        <TextBlock Text="إنشاء الجداول"/>
-                    </StackPanel>
-                </Button>
-                    </WrapPanel>
-                </Border>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="TablesHost" />
-                </ScrollViewer>
-
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
-                    <Button Width="130" Click="Save_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="ContentSave" Width="16" Height="16" Margin="0,0,6,0"/>
-                        <TextBlock Text="حفظ"/>
-                    </StackPanel>
-                </Button>
-                <Button Width="130" Style="{StaticResource SecondaryButtonStyle}" Click="Close_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16" Margin="0,0,6,0"/>
-                        <TextBlock Text="إغلاق"/>
-                    </StackPanel>
-                </Button>
+                <!-- أزرار Undo/Redo -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource IconButtonStyle}" 
+                            Command="{Binding UndoCommand}"
+                            ToolTip="تراجع (Ctrl+Z)">
+                        <iconPacks:PackIconMaterial Kind="Undo" Width="20" Height="20"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButtonStyle}" 
+                            Command="{Binding RedoCommand}"
+                            ToolTip="إعادة (Ctrl+Y)">
+                        <iconPacks:PackIconMaterial Kind="Redo" Width="20" Height="20"/>
+                    </Button>
                 </StackPanel>
             </Grid>
-        </Grid>
-    </Border>
-</Window>
+        </Border>
 
+        <!-- المحتوى الرئيسي -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16">
+            <StackPanel>
+                <!-- بطاقة الإعدادات -->
+                <Border Style="{StaticResource SemesterCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock Text="عدد السنوات الدراسية" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="YearsTextBox" 
+                                     Style="{StaticResource ModernInputStyle}"
+                                     Text="{Binding Years, UpdateSourceTrigger=PropertyChanged}"
+                                     PreviewTextInput="NumbersOnly_PreviewTextInput"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                            <TextBlock Text="عدد الفصول في كل سنة" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="SemestersTextBox" 
+                                     Style="{StaticResource ModernInputStyle}"
+                                     Text="{Binding Semesters, UpdateSourceTrigger=PropertyChanged}"
+                                     PreviewTextInput="NumbersOnly_PreviewTextInput"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" 
+                                Style="{StaticResource AddButtonStyle}"
+                                Command="{Binding BuildTablesCommand}"
+                                VerticalAlignment="Bottom"
+                                Padding="20,12">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="Table" Width="16" Height="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="إنشاء الجداول" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- رسالة الحالة -->
+                <Border x:Name="StatusBar" Background="#F0FDF4" CornerRadius="8" Padding="12,8" Margin="0,0,0,16"
+                        Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="CheckCircle" Width="16" Height="16" 
+                                                    Foreground="#10B981" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#166534" FontSize="13"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- لوحة البحث والملخص -->
+                <Border Style="{StaticResource SemesterCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                            <TextBlock Text="البحث داخل المواد" Style="{StaticResource LabelStyle}"/>
+                            <TextBox Style="{StaticResource ModernInputStyle}"
+                                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="اكتب جزء من اسم المادة وسيتم تمييز النتائج"
+                                       FontSize="12" Foreground="#94A3B8" Margin="4,8,0,0"/>
+                        </StackPanel>
+
+                        <UniformGrid Grid.Column="1" Columns="4">
+                            <Border Background="#EEF2FF" CornerRadius="10" Padding="12,10" Margin="4,0">
+                                <StackPanel>
+                                    <TextBlock Text="إجمالي المواد" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding TotalSubjectsCount}" FontSize="20" FontWeight="Bold" Foreground="#4338CA"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#ECFDF5" CornerRadius="10" Padding="12,10" Margin="4,0">
+                                <StackPanel>
+                                    <TextBlock Text="مواد محفوظة" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding ExistingSubjectsCount}" FontSize="20" FontWeight="Bold" Foreground="#059669"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FFFBEB" CornerRadius="10" Padding="12,10" Margin="4,0">
+                                <StackPanel>
+                                    <TextBlock Text="مواد معدلة" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding ModifiedSubjectsCount}" FontSize="20" FontWeight="Bold" Foreground="#B45309"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#F8FAFC" CornerRadius="10" Padding="12,10" Margin="4,0">
+                                <StackPanel>
+                                    <TextBlock Text="مواد جديدة" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding NewSubjectsCount}" FontSize="20" FontWeight="Bold" Foreground="#6366F1"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </Grid>
+                </Border>
+
+                <!-- قائمة الفصول -->
+                <ItemsControl ItemsSource="{Binding SemesterCollections}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource SemesterCardStyle}" Width="450">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- عنوان الفصل -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                                        <Border Background="#EEF2FF" CornerRadius="8" Padding="10,6" Margin="0,0,10,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <iconPacks:PackIconMaterial Kind="CalendarMonth" Width="16" Height="16" 
+                                                                            Foreground="#6366F1" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding DisplayName}" 
+                                                           FontWeight="Bold" Foreground="#4338CA"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{Binding Subjects.Count, Mode=OneWay}" Foreground="#64748B"/>
+                                            <Run Text="مواد" Foreground="#94A3B8"/>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <!-- قائمة المواد -->
+                                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Subjects}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border x:Name="SubjectRow" 
+                                                        Background="#F8FAFC" 
+                                                        CornerRadius="8" 
+                                                        Padding="8" 
+                                                        Margin="0,0,0,6"
+                                                        BorderBrush="#E2E8F0"
+                                                        BorderThickness="1"
+                                                        AllowDrop="True"
+                                                        MouseMove="SubjectRow_MouseMove"
+                                                        Drop="SubjectRow_Drop"
+                                                        DragOver="SubjectRow_DragOver"
+                                                        DragLeave="SubjectRow_DragLeave">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                                    <Setter Property="BorderBrush" Value="#F59E0B"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="6"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- أزرار التحريك -->
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,8,0">
+                                                            <Button Style="{StaticResource IconButtonStyle}"
+                                                                    Command="{Binding DataContext.MoveSubjectUpCommand, 
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    ToolTip="نقل للأعلى"
+                                                                    Padding="4">
+                                                                <iconPacks:PackIconMaterial Kind="ChevronUp" Width="14" Height="14"/>
+                                                            </Button>
+                                                            <Button Style="{StaticResource IconButtonStyle}"
+                                                                    Command="{Binding DataContext.MoveSubjectDownCommand, 
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    ToolTip="نقل للأسفل"
+                                                                    Padding="4">
+                                                                <iconPacks:PackIconMaterial Kind="ChevronDown" Width="14" Height="14"/>
+                                                            </Button>
+                                                            <iconPacks:PackIconMaterial Kind="DragVertical" Width="14" Height="14" 
+                                                                                        Foreground="#CBD5E1" Margin="4,0"
+                                                                                        VerticalAlignment="Center"
+                                                                                        Cursor="SizeAll"/>
+                                                        </StackPanel>
+
+                                                        <!-- مؤشر حالة المادة -->
+                                                        <Border Grid.Column="1" CornerRadius="3" Margin="0,1,8,1">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="#6366F1"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsModified}" Value="True">
+                                                                            <Setter Property="Background" Value="#F59E0B"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsExisting}" Value="True">
+                                                                            <Setter Property="Background" Value="#10B981"/>
+                                                                        </DataTrigger>
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding IsExisting}" Value="True"/>
+                                                                                <Condition Binding="{Binding IsModified}" Value="True"/>
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter Property="Background" Value="#F59E0B"/>
+                                                                        </MultiDataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                        </Border>
+
+                                                        <!-- حقل اسم المادة -->
+                                                        <TextBox Grid.Column="2"
+                                                                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource ModernInputStyle}"
+                                                                 Padding="10,8"
+                                                                 FontSize="13"
+                                                                 MinWidth="200"
+                                                                 KeyDown="SubjectName_KeyDown"
+                                                                 ToolTip="اضغط Enter لإضافة مادة جديدة"/>
+
+                                                        <!-- زر الحذف -->
+                                                        <Button Grid.Column="3"
+                                                                Style="{StaticResource DeleteButtonStyle}"
+                                                                Command="{Binding DataContext.RemoveSubjectCommand, 
+                                                                          RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                ToolTip="حذف المادة"
+                                                                Margin="8,0,0,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- زر إضافة مادة -->
+                                    <Button Grid.Row="2"
+                                            Style="{StaticResource AddButtonStyle}"
+                                            Command="{Binding DataContext.AddSubjectCommand, 
+                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            HorizontalAlignment="Right"
+                                            MaxHeight="34"
+                                            Padding="10,6"
+                                            Margin="0,10,0,0">
+                                        <TextBlock Text="إضافة مادة" FontSize="12"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- أزرار الحفظ والإغلاق -->
+                <Border Background="White" CornerRadius="16" Padding="24,20" Margin="0,8,0,0"
+                        BorderBrush="#E2E8F0" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.08" Color="#000000" Direction="270"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- معلومات إضافية -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="InformationOutline" Width="18" Height="18" 
+                                                        Foreground="#64748B" Margin="0,0,8,0"/>
+                            <TextBlock Foreground="#64748B" FontSize="13">
+                                <Run Text="الاختصارات:" FontWeight="SemiBold"/>
+                                <Run Text="Ctrl+S حفظ | Ctrl+Z تراجع | Ctrl+Y إعادة | F5 إنشاء | Esc إغلاق"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- الأزرار -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource SaveButtonStyle}"
+                                    Command="{Binding SaveCommand}"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="حفظ التغييرات"/>
+                            </Button>
+                            <Button Style="{StaticResource CloseButtonStyle}"
+                                    Click="Close_Click">
+                                <TextBlock Text="إغلاق"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

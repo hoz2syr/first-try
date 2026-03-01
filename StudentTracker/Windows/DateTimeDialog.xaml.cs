@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Input;
 using StudentTracker.Controls;
 
 namespace StudentTracker.Windows;
@@ -26,23 +27,25 @@ public partial class DateTimeDialog : Window
             _selectedMinute = ts.Minutes;
         }
         
-        // Initialize wheel pickers after the window is loaded
+        // Allow dragging the borderless window
+        MouseLeftButtonDown += (_, e) =>
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                DragMove();
+        };
+        
         Loaded += DateTimeDialog_Loaded;
     }
 
     private void DateTimeDialog_Loaded(object sender, RoutedEventArgs e)
     {
-        // Use dispatcher to ensure UI is fully loaded
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            // Initialize wheel pickers
             InitializeWheels();
-            
-            // Select initial values
             SelectInitialTime();
-            
             _isInitializing = false;
             UpdateSelectedTimeText();
+            UpdateHeaderPreview();
         }), System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
@@ -50,7 +53,6 @@ public partial class DateTimeDialog : Window
     {
         try
         {
-            // Populate hours (00-23)
             var hours = new List<string>();
             for (int i = 0; i < 24; i++) hours.Add(i.ToString("D2"));
             if (HoursWheelPicker != null)
@@ -59,7 +61,6 @@ public partial class DateTimeDialog : Window
                 HoursWheelPicker.SelectedIndex = Math.Max(0, Math.Min(23, _selectedHour));
             }
 
-            // Populate minutes (00-59)
             var minutes = new List<string>();
             for (int i = 0; i < 60; i++) minutes.Add(i.ToString("D2"));
             if (MinutesWheelPicker != null)
@@ -70,7 +71,6 @@ public partial class DateTimeDialog : Window
         }
         catch (Exception ex)
         {
-            // Log error or handle gracefully
             System.Diagnostics.Debug.WriteLine($"Error initializing wheels: {ex.Message}");
         }
     }
@@ -106,11 +106,21 @@ public partial class DateTimeDialog : Window
         }
 
         UpdateSelectedTimeText();
+        UpdateHeaderPreview();
     }
 
     private void UpdateSelectedTimeText()
     {
-        SelectedTimeText.Text = $"{_selectedHour:D2}:{_selectedMinute:D2}";
+        if (SelectedTimeText != null)
+            SelectedTimeText.Text = $"{_selectedHour:D2}:{_selectedMinute:D2}";
+    }
+
+    private void UpdateHeaderPreview()
+    {
+        if (HeaderPreviewText == null || DatePickerControl?.SelectedDate == null) return;
+        
+        var date = DatePickerControl.SelectedDate.Value;
+        HeaderPreviewText.Text = $"{date:yyyy/MM/dd} - {_selectedHour:D2}:{_selectedMinute:D2}";
     }
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
@@ -125,11 +135,6 @@ public partial class DateTimeDialog : Window
         SelectedDateTime = DatePickerControl.SelectedDate.Value.Date.Add(time);
         DialogResult = true;
         Close();
-    }
-
-    private void TodayButton_Click(object sender, RoutedEventArgs e)
-    {
-        DatePickerControl.SelectedDate = DateTime.Today;
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)

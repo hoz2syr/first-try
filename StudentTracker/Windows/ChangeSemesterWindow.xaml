@@ -2,12 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        FlowDirection="RightToLeft"
         Title="تغيير الفصل الحالي"
         Height="400"
         Width="470"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
-    <Border Background="#EEF2F7" Padding="0">
+    <Border Background="{StaticResource BackgroundBrush}" Padding="0">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -15,13 +16,8 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Border Grid.Row="0" Padding="18,14">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#1A237E" Offset="0" />
-                        <GradientStop Color="#1565C0" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
+            <Border Grid.Row="0" Padding="18,14"
+                    Background="{StaticResource HeaderGradientBrush}">
                 <TextBlock FontWeight="Bold" FontSize="18" Foreground="White" >
                     <iconPacks:PackIconMaterial Kind="Sync" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <Run Text="تغيير الفصل الحالي"/>
@@ -43,7 +39,7 @@
 
                 <ComboBox x:Name="YearComboBox" Grid.Row="1" Margin="0,8,0,6" Padding="8,6" FontSize="14" />
 
-                <TextBlock Grid.Row="2" Foreground="#607D8B" FontSize="12"
+                <TextBlock Grid.Row="2" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
                            Text="السنة يتم حسابها تلقائياً بناءً على عدد المواد الناجحة" />
 
                 <TextBlock Grid.Row="3" Text="الفصل الدراسي:" FontWeight="Bold" Margin="0,12,0,0" />
@@ -56,8 +52,8 @@
 
                 <Border Grid.Row="5" Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,12,0,0" VerticalAlignment="Bottom">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="Alert" Width="16" Height="16" VerticalAlignment="Top" Margin="0,0,8,0" Foreground="#FF9800"/>
-                        <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#795548"
+                        <iconPacks:PackIconMaterial Kind="Alert" Width="16" Height="16" VerticalAlignment="Top" Margin="0,0,8,0" Foreground="{StaticResource WarningBrush}"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
                                    Text="تغيير الفصل سيؤثر على المواد المعروضة في مخطط الفصل الحالي." />
                     </StackPanel>
                 </Border>

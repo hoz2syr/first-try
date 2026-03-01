@@ -18,6 +18,13 @@ public partial class AddGradeWindow : Window
         GradeTextBox.GotFocus += GradeTextBox_GotFocus;
         NotesTextBox.LostFocus += NotesTextBox_LostFocus;
         NotesTextBox.GotFocus += NotesTextBox_GotFocus;
+        
+        // تركيز تلقائي على حقل العلامة عند فتح النافذة
+        ContentRendered += (_, _) =>
+        {
+            GradeTextBox.Focus();
+            System.Windows.Input.Keyboard.Focus(GradeTextBox);
+        };
     }
     
     private void GradeTextBox_GotFocus(object sender, RoutedEventArgs e)

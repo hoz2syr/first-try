@@ -3,12 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:StudentTracker.Controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        FlowDirection="RightToLeft"
         Title="اختر التاريخ والوقت" 
-        Height="420" 
-        Width="400" 
+        Height="640" 
+        Width="420" 
         WindowStartupLocation="CenterOwner" 
-        ResizeMode="NoResize">
-    <Border Background="#EEF2F7" Padding="0">
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Border Background="White" CornerRadius="20" Margin="12"
+            BorderBrush="#E2E8F0" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.12" Color="#000000" Direction="270"/>
+        </Border.Effect>
+
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -16,126 +26,176 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Border Grid.Row="0" Padding="18,14">
+            <Border Grid.Row="0" Padding="22,18" CornerRadius="20,20,0,0">
                 <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#1A237E" Offset="0" />
-                        <GradientStop Color="#1565C0" Offset="1" />
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#6366F1" Offset="0" />
+                        <GradientStop Color="#818CF8" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <TextBlock FontWeight="Bold" FontSize="18" Foreground="White" >
-                    <iconPacks:PackIconMaterial Kind="CalendarMonth" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <Run Text="اختر التاريخ والوقت"/>
-                </TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock FontWeight="Bold" FontSize="18" Foreground="White">
+                            <Run Text="اختر التاريخ والوقت"/>
+                        </TextBlock>
+                        <TextBlock x:Name="HeaderPreviewText" Text="—" 
+                                   FontSize="13" Foreground="#C7D2FE" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#FFFFFF20" CornerRadius="12" Padding="10">
+                        <iconPacks:PackIconMaterial Kind="CalendarClock" Width="22" Height="22" Foreground="White"/>
+                    </Border>
+                </Grid>
             </Border>
 
-            <Grid Grid.Row="1" Margin="18,16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <Grid Margin="18,12,18,18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- التاريخ -->
-                <StackPanel Grid.Row="0" Margin="0,0,0,14" Orientation="Horizontal" VerticalAlignment="Center">
-                    <StackPanel Orientation="Vertical" Width="260">
-                        <TextBlock Text="التاريخ" FontWeight="SemiBold" FontSize="14" Foreground="#546E7A" Margin="0,0,0,6" />
-                        <DatePicker x:Name="DatePickerControl" 
-                                    Language="en-US" 
-                                    FontSize="14" 
-                                    Padding="10,8" />
+                    <!-- التاريخ -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <controls:DateWheelPicker x:Name="DatePickerControl"
+                                                  MinHeight="290"
+                                                  HorizontalAlignment="Stretch" />
                     </StackPanel>
-                    <Button Content="اليوم" 
-                            Width="80" 
-                            Height="36" 
-                            Margin="12,18,0,0" 
-                            FontSize="13"
-                            Padding="8,6"
-                            Click="TodayButton_Click" />
-                </StackPanel>
 
-                <!-- الوقت - iOS Wheel Picker Style -->
-                <StackPanel Grid.Row="1" Margin="0,0,0,16">
-                    <TextBlock Text="الوقت" FontWeight="SemiBold" FontSize="14" Foreground="#546E7A" Margin="0,0,0,8" />
-                    
-                    <!-- Wheel Picker Container -->
-                    <Border Background="White" 
-                            BorderBrush="#E0E0E0" 
-                            BorderThickness="1" 
-                            CornerRadius="20" 
-                            Height="180"
-                            Padding="12">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.06" Color="#000000" Direction="270" />
-                        </Border.Effect>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            
-                            <!-- Hours Wheel -->
-                            <Border Grid.Column="0" Background="Transparent" CornerRadius="12">
-                                <controls:WheelPickerControl x:Name="HoursWheelPicker" 
-                                                              Width="110" 
-                                                              Height="156"
-                                                              Margin="6,0,0,0"
-                                                              SelectionChanged="Picker_SelectionChanged" />
-                            </Border>
-                            
-                            <!-- Separator -->
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16,0">
-                                <Ellipse Width="4" Height="4" Fill="#1565C0" Margin="0,0,0,4"/>
-                                <Ellipse Width="4" Height="4" Fill="#1565C0" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            
-                            <!-- Minutes Wheel -->
-                            <Border Grid.Column="2" Background="Transparent" CornerRadius="12">
-                                <controls:WheelPickerControl x:Name="MinutesWheelPicker" 
-                                                              Width="110" 
-                                                              Height="156"
-                                                              Margin="0,0,6,0"
-                                                              SelectionChanged="Picker_SelectionChanged" />
-                            </Border>
-                        </Grid>
+                    <!-- الوقت - Wheel Picker -->
+                    <StackPanel Grid.Row="1" Margin="0,4,0,10">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <iconPacks:PackIconMaterial Kind="ClockOutline" Width="16" Height="16" 
+                                                        Foreground="#6366F1" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="الوقت" FontWeight="SemiBold" FontSize="14" Foreground="#1E293B" />
+                        </StackPanel>
+                        
+                        <Border Background="#F8FAFC" 
+                                BorderBrush="#E2E8F0" 
+                                BorderThickness="1" 
+                                CornerRadius="14" 
+                                Height="170"
+                                Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Hours Wheel -->
+                                <Grid Grid.Column="0">
+                                    <TextBlock Text="ساعة" FontSize="11" Foreground="#94A3B8"
+                                               FontWeight="Medium"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                    <controls:WheelPickerControl x:Name="HoursWheelPicker" 
+                                                                  Width="100" Height="150"
+                                                                  Margin="0,16,0,0"
+                                                                  SelectionChanged="Picker_SelectionChanged" />
+                                </Grid>
+                                
+                                <!-- Separator -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,12,10,0">
+                                    <Ellipse Width="6" Height="6" Fill="#6366F1" Margin="0,0,0,8"/>
+                                    <Ellipse Width="6" Height="6" Fill="#6366F1" Margin="0,8,0,0"/>
+                                </StackPanel>
+                                
+                                <!-- Minutes Wheel -->
+                                <Grid Grid.Column="2">
+                                    <TextBlock Text="دقيقة" FontSize="11" Foreground="#94A3B8"
+                                               FontWeight="Medium"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                    <controls:WheelPickerControl x:Name="MinutesWheelPicker" 
+                                                                  Width="100" Height="150"
+                                                                  Margin="0,16,0,0"
+                                                                  SelectionChanged="Picker_SelectionChanged" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- الوقت المحدد -->
+                    <Border Grid.Row="2" CornerRadius="12" Padding="14,10" Margin="0,0,0,14">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#EEF2FF" Offset="0"/>
+                                <GradientStop Color="#E0E7FF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="Clock" Width="18" Height="18" 
+                                                        Foreground="#6366F1" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="SelectedTimeText" 
+                                       Text="09:00" 
+                                       FontSize="24" 
+                                       FontWeight="Bold" 
+                                       Foreground="#4338CA" 
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
-                    
-                    <!-- Time Format Hint -->
-                    <TextBlock Text="اسحب لاختيار الوقت" 
-                               FontSize="12" 
-                               Foreground="#78909C" 
-                               HorizontalAlignment="Center" 
-                               Margin="0,8,0,0" />
-                </StackPanel>
 
-                <!-- الوقت المحدد -->
-                <TextBlock x:Name="SelectedTimeText" 
-                           Grid.Row="2"
-                           Text="09:00" 
-                           FontSize="20" 
-                           FontWeight="Bold" 
-                           Foreground="#1565C0" 
-                           HorizontalAlignment="Center" 
-                           Margin="0,0,0,12" />
-
-                <!-- الأزرار -->
-                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
-                    <Button Width="110" Click="OkButton_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="ContentSave" Width="16" Height="16" Margin="0,0,6,0"/>
-                        <TextBlock Text="حفظ"/>
-                    </StackPanel>
-                </Button>
-                <Button Width="110" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16" Margin="0,0,6,0"/>
-                        <TextBlock Text="إلغاء"/>
-                    </StackPanel>
-                </Button>
-                </StackPanel>
-            </Grid>
+                    <!-- الأزرار -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Button Grid.Column="0" Click="CancelButton_Click" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="#F8FAFC" CornerRadius="10" 
+                                            Padding="16,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="Close" Width="15" Height="15" 
+                                                                        Foreground="#64748B" Margin="0,0,6,0"/>
+                                            <TextBlock Text="إلغاء" FontSize="14" FontWeight="Medium" Foreground="#64748B"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        
+                        <Button Grid.Column="2" Click="OkButton_Click" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" CornerRadius="10" Padding="16,12">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#6366F1" Offset="0"/>
+                                                <GradientStop Color="#818CF8" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="Check" Width="15" Height="15" 
+                                                                        Foreground="White" Margin="0,0,6,0"/>
+                                            <TextBlock Text="تأكيد" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </ScrollViewer>
         </Grid>
     </Border>
 </Window>

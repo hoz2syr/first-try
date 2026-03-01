@@ -1,14 +1,13 @@
 using StudentTracker.Models;
+using StudentTracker.ViewModels;
 using StudentTracker.Services;
 using StudentTracker.Windows;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows;
-using System.Linq;
 
 namespace StudentTracker;
 
@@ -50,14 +49,40 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _activeTabIndex = 0;
     
     /// <summary>
-    /// نقطة بدء السحب (للإيماءات على الأجهزة العاملة)
+    /// نقطة بدء السحب (للإيماءات باللمس)
     /// </summary>
     private Point _swipeStart;
     
     /// <summary>
-    /// هل正在进行 السحب
+    /// هل يتم السحب حالياً
     /// </summary>
     private bool _isSwiping;
+
+    // ==================== مساعد رسائل الخطأ ====================
+
+    /// <summary>
+    /// تحويل رسالة الخطأ التقنية إلى رسالة مفهومة للمستخدم
+    /// </summary>
+    /// <remarks>
+    /// يحلل نوع الخطأ ويعرض رسالة مبسطة بدلاً من رسائل .NET التقنية
+    /// </remarks>
+    private static string GetUserFriendlyError(Exception ex, string context)
+    {
+        // تسجيل الخطأ التقني للمطور
+        System.Diagnostics.Debug.WriteLine($"[{context}] {ex.GetType().Name}: {ex.Message}");
+        Services.Logger.LogError(context, ex);
+
+        return ex switch
+        {
+            // أخطاء قاعدة البيانات
+            Microsoft.Data.Sqlite.SqliteException => "حدث خطأ في قاعدة البيانات. يرجى إعادة تشغيل التطبيق.",
+            System.IO.IOException => "لا يمكن الوصول إلى ملف البيانات. تأكد من أن الملف غير مفتوح في برنامج آخر.",
+            InvalidOperationException => "حدث خطأ أثناء العملية. يرجى المحاولة مرة أخرى.",
+            FormatException => "تم إدخال بيانات غير صالحة. يرجى التحقق من المدخلات.",
+            ArgumentException => "بيانات غير صحيحة. يرجى مراجعة القيم المُدخلة.",
+            _ => "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+        };
+    }
 
     /// <summary>
     /// المُنشئ الافتراضي - ينشئ خدمة قاعدة بيانات جديدة
@@ -102,7 +127,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            CustomMessageBox.ShowError($"خطأ في تهيئة قاعدة البيانات: {ex.Message}", "خطأ في التهيئة", this);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "InitializeServices"), "خطأ في التهيئة", this);
         }
     }
 
@@ -316,7 +341,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     /// </summary>
     public ObservableCollection<CalendarEvent> SelectedDayEvents { get; } = new();
 
-    public string CurrentMonthName => _calendarCurrentDate.ToString("MMMM", new CultureInfo("ar-SA"));
+    /// <summary>
+    /// ثقافة عربية بتقويم ميلادي (بدلاً من ar-SA الذي يستخدم التقويم الهجري)
+    /// </summary>
+    private static readonly CultureInfo ArabicGregorianCulture = new("ar")
+    {
+        DateTimeFormat = { Calendar = new System.Globalization.GregorianCalendar() }
+    };
+
+    public string CurrentMonthName => _calendarCurrentDate.ToString("MMMM", ArabicGregorianCulture);
     public int CurrentCalendarYear => _calendarCurrentDate.Year;
     public bool HasSelectedDayEvents => SelectedDayEvents.Count > 0;
     public ICommand SelectCalendarDayCommand { get; set; } = null!;
@@ -360,7 +393,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            CustomMessageBox.ShowError($"خطأ في تحديث البيانات: {ex.Message}", "خطأ في التحديث", this);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "RefreshAll"), "خطأ في التحديث", this);
         }
     }
 
@@ -388,7 +421,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         try
         {
             var subjects = _db.GetAllSubjects().Where(s => s.YearNumber == _currentYear).ToList();
-            var retakeIds = _db.GetRetakeLabSubjectIds();
+            var retakeIds = new HashSet<int>(_db.GetRetakeLabSubjectIds());
 
             PassedCountCurrentYear = 0;
             FailedCountCurrentYear = 0;
@@ -434,7 +467,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         try
         {
             var subjects = _db.GetAllSubjects();
-            var retakeIds = _db.GetRetakeLabSubjectIds();
+            var retakeIds = new HashSet<int>(_db.GetRetakeLabSubjectIds());
 
             OverallPassedCount = 0;
             OverallTotalCount = subjects.Count;
@@ -493,7 +526,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"خطأ في إضافة العلامة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.ShowError(GetUserFriendlyError(ex, "AddGrade"), "خطأ في إضافة العلامة", this);
             }
         });
 
@@ -516,7 +549,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"خطأ في إضافة الامتحان: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.ShowError(GetUserFriendlyError(ex, "AddExam"), "خطأ في إضافة الامتحان", this);
             }
         });
 
@@ -530,7 +563,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"خطأ في عرض السجل: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.ShowError(GetUserFriendlyError(ex, "ShowHistory"), "خطأ في عرض السجل", this);
             }
         });
 
@@ -560,7 +593,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"خطأ: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.ShowError(GetUserFriendlyError(ex, "RetakeLab"), "خطأ", this);
             }
         });
 
@@ -579,78 +612,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             try
             {
-                // Save practical grade
-                if (!string.IsNullOrWhiteSpace(viewModel.EditPracticalGrade))
-                {
-                    if (double.TryParse(viewModel.EditPracticalGrade, NumberStyles.Float, CultureInfo.InvariantCulture, out var pGrade) ||
-                        double.TryParse(viewModel.EditPracticalGrade, NumberStyles.Float, CultureInfo.CurrentCulture, out pGrade))
-                    {
-                        if (pGrade >= 0 && pGrade <= 100)
-                        {
-                            _db.AddGradeAttempt(new GradeAttempt
-                            {
-                                SubjectId = viewModel.SubjectId,
-                                AttemptType = "عملي",
-                                Grade = pGrade,
-                                AttemptDate = DateTime.Now,
-                                Notes = "تعديل سريع"
-                            });
-                        }
-                    }
-                }
+                // حفظ الدرجة العملية مع التحقق
+                if (!SaveInlineGrade(viewModel.SubjectId, "عملي", viewModel.EditPracticalGrade))
+                    return;
 
-                // Save theory grade
-                if (!string.IsNullOrWhiteSpace(viewModel.EditTheoryGrade))
-                {
-                    if (double.TryParse(viewModel.EditTheoryGrade, NumberStyles.Float, CultureInfo.InvariantCulture, out var tGrade) ||
-                        double.TryParse(viewModel.EditTheoryGrade, NumberStyles.Float, CultureInfo.CurrentCulture, out tGrade))
-                    {
-                        if (tGrade >= 0 && tGrade <= 100)
-                        {
-                            _db.AddGradeAttempt(new GradeAttempt
-                            {
-                                SubjectId = viewModel.SubjectId,
-                                AttemptType = "نظري",
-                                Grade = tGrade,
-                                AttemptDate = DateTime.Now,
-                                Notes = "تعديل سريع"
-                            });
-                        }
-                    }
-                }
+                // حفظ الدرجة النظرية مع التحقق
+                if (!SaveInlineGrade(viewModel.SubjectId, "نظري", viewModel.EditTheoryGrade))
+                    return;
 
-                // Save practical exam date
-                if (viewModel.EditPracticalExamDate.HasValue)
-                {
-                    var time = TimeSpan.Zero;
-                    if (!string.IsNullOrWhiteSpace(viewModel.EditPracticalExamTime) &&
-                        TimeSpan.TryParse(viewModel.EditPracticalExamTime, out var pt))
-                    {
-                        time = pt;
-                    }
-                    var examDateTime = viewModel.EditPracticalExamDate.Value.Date.Add(time);
-                    _db.UpsertExamSchedule(viewModel.SubjectId, "عملي", examDateTime);
-                }
+                // حفظ تاريخ امتحان العملي
+                SaveInlineExamDate(viewModel.SubjectId, "عملي", viewModel.EditPracticalExamDate, viewModel.EditPracticalExamTime);
 
-                // Save theory exam date
-                if (viewModel.EditTheoryExamDate.HasValue)
-                {
-                    var time = TimeSpan.Zero;
-                    if (!string.IsNullOrWhiteSpace(viewModel.EditTheoryExamTime) &&
-                        TimeSpan.TryParse(viewModel.EditTheoryExamTime, out var tt))
-                    {
-                        time = tt;
-                    }
-                    var examDateTime = viewModel.EditTheoryExamDate.Value.Date.Add(time);
-                    _db.UpsertExamSchedule(viewModel.SubjectId, "نظري", examDateTime);
-                }
+                // حفظ تاريخ امتحان النظري
+                SaveInlineExamDate(viewModel.SubjectId, "نظري", viewModel.EditTheoryExamDate, viewModel.EditTheoryExamTime);
 
                 viewModel.IsEditing = false;
+                CustomMessageBox.ShowSuccess($"تم حفظ تعديلات '{viewModel.SubjectName}' بنجاح!", "تم الحفظ", this);
                 RefreshAll();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"خطأ في حفظ التعديلات: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.ShowError(GetUserFriendlyError(ex, "SaveEdit"), "خطأ في حفظ التعديلات", this);
             }
         });
 
@@ -669,34 +651,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 .Where(s => s.YearNumber == _currentYear && s.SemesterNumber == _currentSemester)
                 .ToList();
 
-            var retakeIds = _db.GetRetakeLabSubjectIds();
+            var retakeIds = new HashSet<int>(_db.GetRetakeLabSubjectIds());
 
             foreach (var subject in subjects)
             {
-                var practical = _db.GetLatestGrade(subject.Id, "عملي");
-                var theory = _db.GetLatestGrade(subject.Id, "نظري");
-                var practicalExam = _db.GetLatestExamDate(subject.Id, "عملي");
-                var theoryExam = _db.GetLatestExamDate(subject.Id, "نظري");
-
-                var viewModel = new SubjectViewModel
-                {
-                    SubjectId = subject.Id,
-                    YearNumber = subject.YearNumber,
-                    SemesterNumber = subject.SemesterNumber,
-                    SubjectName = subject.Name,
-                    PracticalGrade = practical,
-                    TheoryGrade = theory,
-                    PracticalExamDate = practicalExam,
-                    TheoryExamDate = theoryExam,
-                    FinalGrade = GradeCalculator.ComputeFinalGrade(practical, theory, retakeIds.Contains(subject.Id)),
-                    Status = GradeCalculator.ComputeStatus(_currentYear, subject.YearNumber, practical, theory, retakeIds.Contains(subject.Id)),
-                    IsRetakeLab = retakeIds.Contains(subject.Id),
-                    ShowRetakeLabButton = practical.HasValue && practical.Value < 30,
-                    IsLocked = subject.YearNumber > _currentYear
-                };
-
-                SetupSubjectCommands(viewModel);
-                CurrentSemesterSubjects.Add(viewModel);
+                CurrentSemesterSubjects.Add(BuildSubjectViewModel(subject, retakeIds));
             }
         }
         catch (Exception ex)
@@ -711,7 +670,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             GeneralPlanSemesters.Clear();
             var subjects = _db.GetAllSubjects();
-            var retakeIds = _db.GetRetakeLabSubjectIds();
+            var retakeIds = new HashSet<int>(_db.GetRetakeLabSubjectIds());
 
             var groupedSubjects = subjects
                 .GroupBy(s => new { s.YearNumber, s.SemesterNumber })
@@ -730,29 +689,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
                 foreach (var subject in group.OrderBy(s => s.DisplayOrder))
                 {
-                    var practical = _db.GetLatestGrade(subject.Id, "عملي");
-                    var theory = _db.GetLatestGrade(subject.Id, "نظري");
-                    var practicalExam = _db.GetLatestExamDate(subject.Id, "عملي");
-                    var theoryExam = _db.GetLatestExamDate(subject.Id, "نظري");
-
-                    var subjectViewModel = new SubjectViewModel
-                    {
-                        SubjectId = subject.Id,
-                        YearNumber = subject.YearNumber,
-                        SemesterNumber = subject.SemesterNumber,
-                        SubjectName = subject.Name,
-                        PracticalGrade = practical,
-                        TheoryGrade = theory,
-                        PracticalExamDate = practicalExam,
-                        TheoryExamDate = theoryExam,
-                        FinalGrade = GradeCalculator.ComputeFinalGrade(practical, theory, retakeIds.Contains(subject.Id)),
-                        Status = GradeCalculator.ComputeStatus(_currentYear, subject.YearNumber, practical, theory, retakeIds.Contains(subject.Id)),
-                        IsRetakeLab = retakeIds.Contains(subject.Id),
-                        IsLocked = subject.YearNumber > _currentYear
-                    };
-
-                    SetupSubjectCommands(subjectViewModel);
-                    semesterViewModel.Subjects.Add(subjectViewModel);
+                    semesterViewModel.Subjects.Add(BuildSubjectViewModel(subject, retakeIds));
                 }
 
                 GeneralPlanSemesters.Add(semesterViewModel);
@@ -903,6 +840,98 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ => "فصل غير معروف"
     };
 
+    // ==================== مساعد بناء SubjectViewModel ====================
+
+    /// <summary>
+    /// بناء نموذج عرض المادة من بيانات المادة الخام
+    /// </summary>
+    /// <remarks>
+    /// يجلب أحدث الدرجات والامتحانات ويحسب الحالة النهائية.
+    /// يُستخدم بشكل مشترك من LoadCurrentSemesterPlan وLoadGeneralPlan.
+    /// </remarks>
+    private SubjectViewModel BuildSubjectViewModel(Subject subject, HashSet<int> retakeIds)
+    {
+        var practical = _db.GetLatestGrade(subject.Id, "عملي");
+        var theory = _db.GetLatestGrade(subject.Id, "نظري");
+        var practicalExam = _db.GetLatestExamDate(subject.Id, "عملي");
+        var theoryExam = _db.GetLatestExamDate(subject.Id, "نظري");
+        var isRetake = retakeIds.Contains(subject.Id);
+
+        var vm = new SubjectViewModel
+        {
+            SubjectId = subject.Id,
+            YearNumber = subject.YearNumber,
+            SemesterNumber = subject.SemesterNumber,
+            SubjectName = subject.Name,
+            PracticalGrade = practical,
+            TheoryGrade = theory,
+            PracticalExamDate = practicalExam,
+            TheoryExamDate = theoryExam,
+            FinalGrade = GradeCalculator.ComputeFinalGrade(practical, theory, isRetake),
+            Status = GradeCalculator.ComputeStatus(_currentYear, subject.YearNumber, practical, theory, isRetake),
+            IsRetakeLab = isRetake,
+            ShowRetakeLabButton = practical.HasValue && practical.Value < 30,
+            IsLocked = subject.YearNumber > _currentYear
+        };
+
+        SetupSubjectCommands(vm);
+        return vm;
+    }
+
+    // ==================== مساعدات التحرير المضمن ====================
+
+    /// <summary>
+    /// حفظ درجة مُدخلة من التحرير السريع
+    /// </summary>
+    /// <returns>true إذا تم الحفظ بنجاح أو كان الحقل فارغاً</returns>
+    private bool SaveInlineGrade(int subjectId, string attemptType, string gradeText)
+    {
+        if (string.IsNullOrWhiteSpace(gradeText)) return true;
+
+        if (double.TryParse(gradeText, NumberStyles.Float, CultureInfo.InvariantCulture, out var grade) ||
+            double.TryParse(gradeText, NumberStyles.Float, CultureInfo.CurrentCulture, out grade))
+        {
+            if (grade >= 0 && grade <= 100)
+            {
+                _db.AddGradeAttempt(new GradeAttempt
+                {
+                    SubjectId = subjectId,
+                    AttemptType = attemptType,
+                    Grade = grade,
+                    AttemptDate = DateTime.Now,
+                    Notes = "تعديل سريع"
+                });
+                return true;
+            }
+            else
+            {
+                CustomMessageBox.ShowWarning($"علامة {attemptType} يجب أن تكون بين 0 و 100. القيمة المُدخلة: {grade}", "قيمة غير صالحة", this);
+                return false;
+            }
+        }
+        else
+        {
+            CustomMessageBox.ShowWarning($"علامة {attemptType} يجب أن تكون رقماً. القيمة المُدخلة: '{gradeText}'", "قيمة غير صالحة", this);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// حفظ تاريخ امتحان مُدخل من التحرير السريع
+    /// </summary>
+    private void SaveInlineExamDate(int subjectId, string examType, DateTime? examDate, string timeText)
+    {
+        if (!examDate.HasValue) return;
+
+        var time = TimeSpan.Zero;
+        if (!string.IsNullOrWhiteSpace(timeText) && TimeSpan.TryParse(timeText, out var parsed))
+        {
+            time = parsed;
+        }
+
+        _db.UpsertExamSchedule(subjectId, examType, examDate.Value.Date.Add(time));
+    }
+
     // Event handlers
     private void NavDashboard_Click(object sender, RoutedEventArgs e) => ActiveTabIndex = 0;
     private void NavCurrentSemester_Click(object sender, RoutedEventArgs e) => ActiveTabIndex = 1;
@@ -921,7 +950,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"خطأ في فتح نافذة تحرير الخطة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "EditPlan"), "خطأ في فتح نافذة تحرير الخطة", this);
         }
         finally
         {
@@ -944,7 +973,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"خطأ في تغيير الفصل: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "ChangeSemester"), "خطأ في تغيير الفصل", this);
         }
     }
 
@@ -976,7 +1005,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            CustomMessageBox.ShowError($"خطأ في إضافة الملاحظة: {ex.Message}", "خطأ", this);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "AddNote"), "خطأ في إضافة الملاحظة", this);
         }
     }
     
@@ -989,7 +1018,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            CustomMessageBox.ShowError($"خطأ في فتح نافذة الإحصائيات: {ex.Message}", "خطأ", this);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "Statistics"), "خطأ في فتح الإحصائيات", this);
         }
     }
 
@@ -1014,24 +1043,20 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"خطأ في حذف الملاحظة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            CustomMessageBox.ShowError(GetUserFriendlyError(ex, "DeleteNote"), "خطأ في حذف الملاحظة", this);
         }
     }
 
-    private void PreviousMonth_Click(object sender, RoutedEventArgs e)
-    {
-        _calendarCurrentDate = _calendarCurrentDate.AddMonths(-1);
-        _selectedCalendarDay = null;
-        SelectedDayEvents.Clear();
-        OnPropertyChanged(nameof(HasSelectedDayEvents));
-        LoadCalendar();
-        OnPropertyChanged(nameof(CurrentMonthName));
-        OnPropertyChanged(nameof(CurrentCalendarYear));
-    }
+    private void PreviousMonth_Click(object sender, RoutedEventArgs e) => NavigateCalendarMonth(-1);
 
-    private void NextMonth_Click(object sender, RoutedEventArgs e)
+    private void NextMonth_Click(object sender, RoutedEventArgs e) => NavigateCalendarMonth(1);
+
+    /// <summary>
+    /// تنقل التقويم شهراً للأمام أو الخلف
+    /// </summary>
+    private void NavigateCalendarMonth(int direction)
     {
-        _calendarCurrentDate = _calendarCurrentDate.AddMonths(1);
+        _calendarCurrentDate = _calendarCurrentDate.AddMonths(direction);
         _selectedCalendarDay = null;
         SelectedDayEvents.Clear();
         OnPropertyChanged(nameof(HasSelectedDayEvents));

@@ -1,192 +1,231 @@
 using StudentTracker.Models;
 using StudentTracker.Services;
+using StudentTracker.ViewModels;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace StudentTracker.Windows;
 
+/// <summary>
+/// نافذة تعديل المخطط العام - محسنة مع دعم MVVM و Drag & Drop
+/// </summary>
 public partial class EditPlanWindow : Window
 {
-    private readonly IDatabaseService _db;
-    private readonly Dictionary<(int Year, int Semester), StackPanel> _semesterInputs = new();
-    private Dictionary<(int Year, int Semester), List<Subject>> _existingBySemester = new();
+    private readonly EditPlanViewModel _viewModel;
+    private Point _dragStartPoint;
 
     public EditPlanWindow(IDatabaseService db)
     {
         InitializeComponent();
-        _db = db;
-        LoadExistingPlan();
+        
+        // Initialize ViewModel
+        _viewModel = new EditPlanViewModel(db);
+        DataContext = _viewModel;
+
+        // Handle close command from ViewModel
+        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    public bool IsSaved { get; private set; }
+    public bool IsSaved => _viewModel.IsSaved;
 
-    private void BuildTables_Click(object sender, RoutedEventArgs e)
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (!int.TryParse(YearsTextBox.Text, out var years) || years <= 0)
+        if (e.PropertyName == nameof(EditPlanViewModel.HasUnsavedChanges) && _viewModel.HasUnsavedChanges)
         {
-            CustomMessageBox.ShowWarning("الرجاء إدخال عدد سنوات صحيح.", "تنبيه", this);
-            return;
+            // Track unsaved changes
         }
-
-        if (!int.TryParse(SemestersTextBox.Text, out var semesters) || semesters <= 0)
-        {
-            CustomMessageBox.ShowWarning("الرجاء إدخال عدد فصول صحيح.", "تنبيه", this);
-            return;
-        }
-
-        BuildTables(years, semesters);
-    }
-
-    private void LoadExistingPlan()
-    {
-        var subjects = _db.GetAllSubjects();
-        _existingBySemester = subjects
-            .GroupBy(s => (s.YearNumber, s.SemesterNumber))
-            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.DisplayOrder).ToList());
-
-        var years = Math.Max(1, subjects.Select(s => s.YearNumber).DefaultIfEmpty(1).Max());
-        var semesters = Math.Max(2, subjects.Select(s => s.SemesterNumber).DefaultIfEmpty(2).Max());
-
-        YearsTextBox.Text = years.ToString();
-        SemestersTextBox.Text = semesters.ToString();
-
-        BuildTables(years, semesters);
-    }
-
-    private void BuildTables(int years, int semesters)
-    {
-        TablesHost.Children.Clear();
-        _semesterInputs.Clear();
-
-        for (var year = 1; year <= years; year++)
-        {
-            for (var sem = 1; sem <= semesters; sem++)
-            {
-                var border = new Border
-                {
-                    Background = System.Windows.Media.Brushes.White,
-                    CornerRadius = new CornerRadius(8),
-                    Padding = new Thickness(10),
-                    Margin = new Thickness(0, 0, 0, 10)
-                };
-
-                var root = new StackPanel();
-                root.Children.Add(new TextBlock
-                {
-                    Text = $"السنة {year} - الفصل {sem}",
-                    FontWeight = FontWeights.Bold,
-                    Margin = new Thickness(0, 0, 0, 8)
-                });
-
-                var inputPanel = new StackPanel();
-                if (_existingBySemester.TryGetValue((year, sem), out var existingSubjects) && existingSubjects.Count > 0)
-                {
-                    foreach (var subject in existingSubjects)
-                    {
-                        AddSubjectRow(inputPanel, subject.Name, subject.Id, isExisting: true);
-                    }
-                }
-                else
-                {
-                    AddSubjectRow(inputPanel);
-                }
-
-                var addBtn = new Button
-                {
-                    Content = "+",
-                    Width = 40,
-                    HorizontalAlignment = HorizontalAlignment.Left
-                };
-                addBtn.Click += (_, _) => AddSubjectRow(inputPanel);
-
-                root.Children.Add(addBtn);
-                root.Children.Add(inputPanel);
-                border.Child = root;
-                TablesHost.Children.Add(border);
-
-                _semesterInputs[(year, sem)] = inputPanel;
-            }
-        }
-    }
-
-    private static void AddSubjectRow(Panel panel, string name = "", int? subjectId = null, bool isExisting = false)
-    {
-        var textBox = new TextBox
-        {
-            Width = 350,
-            Margin = new Thickness(0, 5, 0, 0),
-            Text = name,
-            ToolTip = isExisting ? "مادة موجودة (يمكن تعديل الاسم)" : "مادة جديدة"
-        };
-
-        textBox.Tag = new SubjectRowTag
-        {
-            SubjectId = subjectId,
-            OriginalName = name
-        };
-
-        panel.Children.Add(textBox);
-    }
-
-    private void Save_Click(object sender, RoutedEventArgs e)
-    {
-        if (!int.TryParse(YearsTextBox.Text, out var years) || years <= 0 ||
-            !int.TryParse(SemestersTextBox.Text, out var semesters) || semesters <= 0)
-        {
-            CustomMessageBox.ShowWarning("الرجاء إدخال قيم صحيحة قبل الحفظ.", "تنبيه", this);
-            return;
-        }
-
-        if (_semesterInputs.Count == 0)
-        {
-            CustomMessageBox.ShowWarning("الرجاء الضغط على إنشاء الجداول أولاً.", "تنبيه", this);
-            return;
-        }
-
-        var data = new Dictionary<(int Year, int Semester), List<PlanSubjectInput>>();
-
-        foreach (var item in _semesterInputs)
-        {
-            var rows = item.Value.Children
-                .OfType<TextBox>()
-                .Select((textBox, index) =>
-                {
-                    var tag = textBox.Tag as SubjectRowTag;
-                    var enteredName = textBox.Text.Trim();
-                    var finalName = string.IsNullOrWhiteSpace(enteredName)
-                        ? tag?.OriginalName ?? string.Empty
-                        : enteredName;
-
-                    return new PlanSubjectInput
-                    {
-                        SubjectId = tag?.SubjectId,
-                        Name = finalName,
-                        DisplayOrder = index + 1
-                    };
-                })
-                .Where(r => !string.IsNullOrWhiteSpace(r.Name))
-                .ToList();
-
-            data[item.Key] = rows;
-        }
-
-        _db.UpsertStudyPlan(years, semesters, data);
-        IsSaved = true;
-
-        CustomMessageBox.ShowSuccess("تم حفظ المخطط العام بنجاح.", "تم", this);
-        DialogResult = true;
-        Close();
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = false;
+        if (_viewModel.HasUnsavedChanges)
+        {
+            var result = CustomMessageBox.ShowConfirm(
+                "هل أنت متأكد من الإغلاق؟",
+                "تغييرات غير محفوظة",
+                this);
+
+            if (!result)
+                return;
+        }
+
+        DialogResult = _viewModel.IsSaved;
         Close();
     }
 
-    private sealed class SubjectRowTag
+    private void NumbersOnly_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
-        public int? SubjectId { get; set; }
-        public string OriginalName { get; set; } = string.Empty;
+        e.Handled = !Regex.IsMatch(e.Text, "^[0-9]+$");
+    }
+
+    private void SubjectName_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+
+        if (sender is not TextBox textBox || textBox.DataContext is not SubjectItemViewModel subject)
+            return;
+
+        var semester = _viewModel.SemesterCollections.FirstOrDefault(s => s.Subjects.Contains(subject));
+        if (semester == null)
+            return;
+
+        _viewModel.AddSubject(semester);
+        e.Handled = true;
+    }
+
+    #region Drag and Drop
+
+    private void SubjectRow_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            var position = e.GetPosition(this);
+            var diff = _dragStartPoint - position;
+
+            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                var border = sender as Border;
+                var subject = border?.DataContext as SubjectItemViewModel;
+                
+                if (subject != null)
+                {
+                    DragDrop.DoDragDrop(border!, subject, DragDropEffects.Move);
+                }
+            }
+        }
+    }
+
+    private void SubjectRow_DragOver(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(typeof(SubjectItemViewModel)))
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        var draggedSubject = e.Data.GetData(typeof(SubjectItemViewModel)) as SubjectItemViewModel;
+        var targetBorder = sender as Border;
+        var targetSubject = targetBorder?.DataContext as SubjectItemViewModel;
+
+        if (draggedSubject != null && targetSubject != null && draggedSubject != targetSubject)
+        {
+            // Check if they are in the same semester
+            var sourceSemester = _viewModel.SemesterCollections
+                .FirstOrDefault(s => s.Subjects.Contains(draggedSubject));
+            var targetSemester = _viewModel.SemesterCollections
+                .FirstOrDefault(s => s.Subjects.Contains(targetSubject));
+
+            if (sourceSemester != null && targetSemester != null && 
+                sourceSemester.Year == targetSemester.Year && 
+                sourceSemester.Semester == targetSemester.Semester)
+            {
+                e.Effects = DragDropEffects.Move;
+                
+                // Visual feedback
+                targetBorder!.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6366F1"));
+                targetBorder.BorderThickness = new Thickness(2);
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+
+        e.Handled = true;
+    }
+
+    private void SubjectRow_DragLeave(object sender, DragEventArgs e)
+    {
+        var border = sender as Border;
+        if (border != null)
+        {
+            border.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E2E8F0"));
+            border.BorderThickness = new Thickness(1);
+        }
+    }
+
+    private void SubjectRow_Drop(object sender, DragEventArgs e)
+    {
+        var targetBorder = sender as Border;
+        if (targetBorder != null)
+        {
+            // Reset visual feedback
+            targetBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E2E8F0"));
+            targetBorder.BorderThickness = new Thickness(1);
+        }
+
+        if (!e.Data.GetDataPresent(typeof(SubjectItemViewModel)))
+            return;
+
+        var draggedSubject = e.Data.GetData(typeof(SubjectItemViewModel)) as SubjectItemViewModel;
+        var targetSubject = targetBorder?.DataContext as SubjectItemViewModel;
+
+        if (draggedSubject == null || targetSubject == null)
+            return;
+
+        // Find semesters
+        var sourceSemester = _viewModel.SemesterCollections
+            .FirstOrDefault(s => s.Subjects.Contains(draggedSubject));
+        var targetSemester = _viewModel.SemesterCollections
+            .FirstOrDefault(s => s.Subjects.Contains(targetSubject));
+
+        if (sourceSemester == null || targetSemester == null)
+            return;
+
+        // Only allow dropping within the same semester
+        if (sourceSemester.Year == targetSemester.Year && 
+            sourceSemester.Semester == targetSemester.Semester)
+        {
+            var sourceIndex = sourceSemester.Subjects.IndexOf(draggedSubject);
+            var targetIndex = targetSemester.Subjects.IndexOf(targetSubject);
+
+            if (sourceIndex != targetIndex)
+            {
+                sourceSemester.Subjects.Move(sourceIndex, targetIndex);
+                _viewModel.HasUnsavedChanges = true;
+                _viewModel.StatusMessage = "تم نقل المادة";
+            }
+        }
+
+        e.Handled = true;
+    }
+
+    protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnPreviewMouseLeftButtonDown(e);
+        _dragStartPoint = e.GetPosition(this);
+    }
+
+    #endregion
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        if (_viewModel.HasUnsavedChanges && !_viewModel.IsSaved)
+        {
+            var result = CustomMessageBox.ShowConfirm(
+                "هل أنت متأكد من الإغلاق؟",
+                "تغييرات غير محفوظة",
+                this);
+
+            if (!result)
+            {
+                e.Cancel = true;
+                return;
+            }
+        }
+
+        base.OnClosing(e);
     }
 }
