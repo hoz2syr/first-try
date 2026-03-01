@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace StudentTracker.Models;
+namespace StudentTracker.ViewModels;
 
 /// <summary>
 /// نموذج يوم التقويم - يمثل يوماً واحداً في عرض التقويم

@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace StudentTracker.Models;
+namespace StudentTracker.ViewModels;
 
 /// <summary>
 /// فئة أمر إعادة التوجيه - تنفذ واجهة ICommand

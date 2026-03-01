@@ -1,8 +1,9 @@
+using StudentTracker.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace StudentTracker.Models;
+namespace StudentTracker.ViewModels;
 
 /// <summary>
 /// نموذج عرض المادة - يُستخدم لعرض معلومات المادة في الواجهة
