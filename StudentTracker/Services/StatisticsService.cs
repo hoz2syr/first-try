@@ -2,15 +2,22 @@ using StudentTracker.Models;
 
 namespace StudentTracker.Services;
 
+/// <summary>
+/// خدمة الإحصائيات - تحسب إحصائيات الأداء الأكاديمي.
+/// </summary>
 public class StatisticsService
 {
     private readonly IDatabaseService _db;
 
-    public StatisticsService(IDatabaseService db)
-    {
-        _db = db;
-    }
+    /// <summary>إنشاء خدمة الإحصائيات.</summary>
+    /// <param name="db">خدمة قاعدة البيانات.</param>
+    public StatisticsService(IDatabaseService db) => _db = db;
 
+    /// <summary>
+    /// حساب إحصائيات السنة الحالية.
+    /// </summary>
+    /// <param name="currentYear">رقم السنة الحالية.</param>
+    /// <returns>عدد المواد الناجحة، الراسبة، المعلقة، المتبقية ونسبة الإنجاز.</returns>
     public (int passed, int failed, int pending, int remaining, double percentage) CalculateCurrentYearStatistics(int currentYear)
     {
         var subjects = _db.GetAllSubjects().Where(s => s.YearNumber == currentYear).ToList();
@@ -26,20 +33,24 @@ public class StatisticsService
 
             switch (status)
             {
-                case SubjectStatus.Passed: passed++; break;
-                case SubjectStatus.Failed: failed++; break;
-                case SubjectStatus.Pending: pending++; break;
-                default: remaining++; break;
+                case SubjectStatus.Passed:   passed++;    break;
+                case SubjectStatus.Failed:   failed++;    break;
+                case SubjectStatus.Pending:  pending++;   break;
+                default:                     remaining++; break;
             }
         }
 
         var total = subjects.Count;
         var completedSubjects = passed + failed;
-        var percentage = total > 0 ? (completedSubjects * 100.0 / total) : 0;
+        var percentage = total > 0 ? completedSubjects * 100.0 / total : 0;
 
         return (passed, failed, pending, remaining, percentage);
     }
 
+    /// <summary>
+    /// حساب الإحصائيات الكلية لجميع المواد.
+    /// </summary>
+    /// <returns>عدد المواد الناجحة، الإجمالي، نسبة الإنجاز والمعدل العام.</returns>
     public (int passed, int total, double percentage, double average) CalculateOverallStatistics()
     {
         var subjects = _db.GetAllSubjects();
@@ -63,8 +74,8 @@ public class StatisticsService
             }
         }
 
-        var total = subjects.Count();
-        var percentage = total > 0 ? (passed * 100.0 / total) : 0;
+        var total = subjects.Count;
+        var percentage = total > 0 ? passed * 100.0 / total : 0;
         var average = gradeCount > 0 ? totalGrades / gradeCount : 0;
 
         return (passed, total, percentage, average);

@@ -1,8 +1,4 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-namespace StudentTracker.Models
-{
+namespace StudentTracker.Models;
     /// <summary>
     /// نموذج الملاحظة - يمثل ملاحظة واحدة في النظام
     /// </summary>
@@ -37,4 +33,3 @@ namespace StudentTracker.Models
         /// </summary>
         public DateTime ModifiedDate { get; set; }
     }
-}

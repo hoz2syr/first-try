@@ -66,8 +66,8 @@ public partial class App : Application
 		// تهيئة قاعدة البيانات وإنشاء الجداول إذا لم تكن موجودة
 		db.InitializeDatabase();
 
-		// تعيين وضع إيقاف التشغيل ليكون يدوياً
-		// التطبيق لا يتم إغلاقه تلقائياً عند关闭窗口 الرئيسي
+	// تعيين وضع إيقاف التشغيل ليكون يدوياً
+		// التطبيق لا يتم إغلاقه تلقائياً عند إغلاق النافذة الرئيسية
 		ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
 		// التحقق من وجود خطة دراسية
@@ -93,7 +93,7 @@ public partial class App : Application
 		var mainWindow = new MainWindow(db);
 		MainWindow = mainWindow;
 		
-		// تغيير وضع الإيقاف ليتم إغلاق التطبيق عند关闭窗口 الرئيسية
+		// تغيير وضع الإيقاف ليتم إغلاق التطبيق عند إغلاق النافذة الرئيسية
 		ShutdownMode = ShutdownMode.OnMainWindowClose;
 		
 		// عرض النافذة الرئيسية
